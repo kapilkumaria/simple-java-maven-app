@@ -3,7 +3,7 @@ pipeline {
     environment {
         PATH = "/opt/maven/bin:$WORKSPACE:$PATH"
         // Artifactory details
-        ARTIFACTORY_URL = 'http://35.170.196.44:8082/artifactory'
+        ARTIFACTORY_URL = 'http://3.228.18.150:8082/artifactory'
         ARTIFACTORY_REPO = 'todayrepo'
         ARTIFACTORY_CREDENTIALS_ID = 'jfrog_cred'
         //SonarQube Environment
@@ -15,13 +15,13 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                //git url: 'https://github.com/jenkins-docs/simple-java-maven-app.git', branch: 'master'
-                git url: 'https://github.com/kapilkumaria/simple-java-maven-app.git', branch: 'master'
+                git url: 'https://github.com/jenkins-docs/simple-java-maven-app.git', branch: 'master'
             }
         }
         stage('Build') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                sh 'mvn -B -DskipTests package'
+                sh 'ls -al target/'
             }
         }
         stage('Test') {
@@ -51,7 +51,7 @@ pipeline {
         stage('Scan') {
             steps {
                 withSonarQubeEnv(installationName: 'sonarQube') { 
-                   sh 'mvn clean org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.0.2155:sonar'
+                   sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.0.2155:sonar'
                    }
             }
         }
@@ -82,7 +82,8 @@ pipeline {
                 // Configure Artifactory with stored credentials
                 withCredentials([usernamePassword(credentialsId: ARTIFACTORY_CREDENTIALS_ID, usernameVariable: 'ARTIFACTORY_USER', passwordVariable: 'ARTIFACTORY_PASSWORD')]) {
                     sh '''
-                    jfrog rt config --url $ARTIFACTORY_URL --user $ARTIFACTORY_USER --password $ARTIFACTORY_PASSWORD --interactive=false
+                    
+                      jfrog rt config --url $ARTIFACTORY_URL --user $ARTIFACTORY_USER --password $ARTIFACTORY_PASSWORD --interactive=false
                     '''
 
                     // Upload the JAR file to Artifactory
@@ -95,8 +96,8 @@ pipeline {
     }
     post {
         always {
-            // Clean workspace after the build
-            cleanWs()
+                // Clean workspace after the build
+                 cleanWs()
         }
     }
 }
